@@ -1,5 +1,5 @@
 use crate::botsetup::{BotSetup, LaunchBuilder};
-use crate::{tools_folder, BwapiIni, GameConfig};
+use crate::{tools_folder, BwapiIni, BwapiLanMode, GameConfig};
 use anyhow::ensure;
 use std::fs::File;
 use std::process::Command;
@@ -13,6 +13,7 @@ pub struct BwHeadless {
     pub bot_setup: BotSetup,
     pub game_name: Option<String>,
     pub connect_mode: BwHeadlessConnectMode,
+    pub lan_mode: BwapiLanMode,
 }
 
 impl LaunchBuilder for BwHeadless {
@@ -48,6 +49,9 @@ impl LaunchBuilder for BwHeadless {
         cmd.arg("-e").arg(&self.bot_setup.starcraft_exe);
         if let Some(game_name) = &self.game_name {
             cmd.arg("-g").arg(game_name);
+        }
+        if self.lan_mode == BwapiLanMode::LocalAreaNetworkUDP {
+            cmd.arg("--lan");
         }
         cmd.arg("-r").arg(&self.bot_setup.race.to_string());
         cmd.arg("-l").arg(bwapi_dll);

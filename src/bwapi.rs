@@ -1,6 +1,9 @@
 use crate::botsetup::BotSetup;
 use crate::{Binary, Race};
+use serde::de::Unexpected;
+use serde::{Deserialize, Deserializer, Serialize};
 use shared_memory::*;
+use std::fmt::{Display, Formatter};
 use std::io::Write;
 use std::mem::size_of;
 use std::path::PathBuf;
@@ -104,6 +107,41 @@ pub enum BwapiConnectMode {
     Join,
 }
 
+#[derive(clap::ArgEnum, Clone, Copy, Debug, Serialize, PartialEq)]
+pub enum BwapiLanMode {
+    LocalAreaNetworkUDP,
+    LocalPC,
+}
+
+impl<'d> Deserialize<'d> for BwapiLanMode {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'d>,
+    {
+        match String::deserialize(deserializer)?.to_lowercase().as_str() {
+            "u" | "localareanetworkudp" => Ok(BwapiLanMode::LocalAreaNetworkUDP),
+            "p" | "localpc" => Ok(BwapiLanMode::LocalPC),
+            x => Err(serde::de::Error::invalid_value(
+                Unexpected::Str(x),
+                &"One of LocalAreaNetworkUDP/LocalPC or u/p",
+            )),
+        }
+    }
+}
+
+impl Display for BwapiLanMode {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                BwapiLanMode::LocalAreaNetworkUDP => "Local Area Network (UDP)",
+                BwapiLanMode::LocalPC => "Local PC",
+            }
+        )
+    }
+}
+
 pub enum AutoMenu {
     // Managed by bwheadless
     Unused,
@@ -113,6 +151,7 @@ pub enum AutoMenu {
         race: Race,
         game_name: String,
         connect_mode: BwapiConnectMode,
+        lan_mode: BwapiLanMode,
     },
 }
 
@@ -158,9 +197,10 @@ impl BwapiIni {
                 race,
                 game_name,
                 connect_mode,
+                lan_mode,
             } => {
                 writeln!(out, "auto_menu=LAN")?;
-                writeln!(out, "lan_mode=Local PC")?;
+                writeln!(out, "lan_mode={}", lan_mode)?;
                 writeln!(out, "character_name={}", name)?;
                 writeln!(out, "race={}", race)?;
                 match connect_mode {

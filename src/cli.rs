@@ -1,4 +1,4 @@
-use crate::{BotLaunchConfig, GameConfig, HeadfulMode};
+use crate::{BotLaunchConfig, BwapiLanMode, GameConfig, HeadfulMode};
 use clap::{ErrorKind, Parser, Subcommand};
 
 #[derive(Subcommand, Debug)]
@@ -24,6 +24,8 @@ pub struct Cli {
     game_type: Option<GameType>,
     #[clap(short, long)]
     human_speed: bool,
+    #[clap(arg_enum)]
+    lan_mode: Option<BwapiLanMode>,
 }
 
 pub enum Error {
@@ -62,6 +64,7 @@ impl TryFrom<Cli> for GameConfig {
                 human_host: matches!(cli.game_type.unwrap(), GameType::Human { .. }),
                 human_speed: cli.human_speed,
                 latency_frames: 3,
+                lan_mode: cli.lan_mode,
                 time_out_at_frame: None,
             })
         }

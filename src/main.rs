@@ -16,7 +16,9 @@ use serde::{Deserialize, Deserializer};
 use simplelog::{ColorChoice, Config, TermLogger, TerminalMode};
 
 use crate::botsetup::{Binary, BotSetup, LaunchBuilder};
-use crate::bwapi::{AutoMenu, BwapiConnectMode, BwapiIni, BwapiVersion, GameTableAccess};
+use crate::bwapi::{
+    AutoMenu, BwapiConnectMode, BwapiIni, BwapiLanMode, BwapiVersion, GameTableAccess,
+};
 use crate::bwheadless::{BwHeadless, BwHeadlessConnectMode};
 use crate::cli::Cli;
 use crate::injectory::{Injectory, InjectoryConnectMode};
@@ -82,6 +84,7 @@ pub struct GameConfig {
     pub human_speed: bool,
     #[serde(default = "default_latency")]
     pub latency_frames: u32,
+    pub lan_mode: Option<BwapiLanMode>,
     pub time_out_at_frame: Option<u32>,
 }
 
@@ -486,6 +489,7 @@ fn main() -> anyhow::Result<()> {
                         } else {
                             InjectoryConnectMode::Join
                         },
+                        lan_mode: game_config.lan_mode.unwrap_or(BwapiLanMode::LocalPC),
                         wmode: matches!(bot.headful, HeadfulMode::On { no_wmode, .. } if !no_wmode),
                         sound: matches!(bot.headful, HeadfulMode::On { no_sound, ..} if !no_sound),
                         game_speed: if game_config.human_speed { -1 } else { 0 },
@@ -508,6 +512,7 @@ fn main() -> anyhow::Result<()> {
                         } else {
                             BwHeadlessConnectMode::Join
                         },
+                        lan_mode: game_config.lan_mode.unwrap_or(BwapiLanMode::LocalPC),
                     })
                 };
                 info!(

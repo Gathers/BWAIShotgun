@@ -4,7 +4,7 @@ use std::process::Command;
 use anyhow::ensure;
 
 use crate::botsetup::{BotSetup, LaunchBuilder};
-use crate::{tools_folder, AutoMenu, BwapiConnectMode, BwapiIni, GameConfig};
+use crate::{tools_folder, AutoMenu, BwapiConnectMode, BwapiIni, BwapiLanMode, GameConfig};
 
 pub enum InjectoryConnectMode {
     Host {
@@ -21,6 +21,7 @@ pub struct Injectory {
     pub wmode: bool,
     pub sound: bool,
     pub game_speed: i32,
+    pub lan_mode: BwapiLanMode,
 }
 
 impl LaunchBuilder for Injectory {
@@ -59,12 +60,14 @@ impl LaunchBuilder for Injectory {
                         map: map.clone(),
                         player_count: *player_count,
                     },
+                    lan_mode: self.lan_mode,
                 },
                 InjectoryConnectMode::Join => AutoMenu::AutoMenu {
                     name: self.bot_setup.player_name.clone(),
                     game_name: self.game_name.clone(),
                     race: self.bot_setup.race,
                     connect_mode: BwapiConnectMode::Join,
+                    lan_mode: self.lan_mode,
                 },
             },
             game_speed: self.game_speed,
